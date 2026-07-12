@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Senior Leadership Interview Prep</title>
-    <link rel="stylesheet" href="./styles.css?v=2026-07-13.1" />
+    <link rel="stylesheet" href="./styles.css?v=2026-07-13.2" />
     <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   </head>
@@ -84,7 +84,7 @@
         const owner = "TeamShiksha";
         const repo = "Senior-Leadership-Big-Tech-Interview-Prep";
         // Bump this value and docs/site-version.json whenever cacheable site assets change.
-        const siteVersion = "2026-07-13.1";
+        const siteVersion = "2026-07-13.2";
 
         const guideSelect = document.getElementById("guide-select");
         const docTitle = document.getElementById("doc-title");
@@ -178,7 +178,7 @@
           const emailLink = document.getElementById("email-site");
           const dismissButton = document.getElementById("start-preparing");
           const welcomeKey = "senior-leadership-prep-welcome-v1";
-          const isMobile = window.matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+          const isMobile = window.innerWidth <= 720 || window.matchMedia("(pointer: coarse)").matches;
 
           emailLink.href = `mailto:?subject=${encodeURIComponent("Senior Leadership Interview Prep")}&body=${encodeURIComponent(`Save this for a focused desktop prep session: ${window.location.origin}`)}`;
           mobileWelcome.hidden = !isMobile;
