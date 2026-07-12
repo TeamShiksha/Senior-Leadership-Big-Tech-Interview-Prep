@@ -43,7 +43,13 @@
     <section class="contributors">
       <h2>Contributors</h2>
       <p class="hint">Thanks to everyone contributing to this prep library.</p>
-      <ul id="contributors-list"></ul>
+      <ul id="contributors-list">
+        <li>
+          <a href="https://github.com/sunnykgupta" target="_blank" rel="noreferrer">
+            <span>@sunnykgupta</span>
+          </a>
+        </li>
+      </ul>
     </section>
 
     <footer class="site-footer">
@@ -57,18 +63,16 @@
         const repo = "Senior-Leadership-Big-Tech-Interview-Prep";
 
         const guideSelect = document.getElementById("guide-select");
-        const contributorsList = document.getElementById("contributors-list");
         const docTitle = document.getElementById("doc-title");
         const docContent = document.getElementById("doc-content");
 
         const branch = "prod";
-
-        const tree = await fetchJson(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
-        const excludedPaths = new Set(["README.md", "INTERVIEW_PREP_TEMPLATE.md"]);
-        const markdownPaths = tree.tree
-          .filter((item) => item.type === "blob" && item.path.toLowerCase().endsWith(".md") && !item.path.startsWith("docs/") && !excludedPaths.has(item.path))
-          .map((item) => item.path)
-          .sort((a, b) => a.localeCompare(b));
+        const markdownPaths = [
+          "google_interview_prep.md",
+          "meta_interview_prep.md",
+          "microsoft_interview_prep.md",
+          "rippling_interview_prep.md",
+        ];
 
         renderGuidePicker(markdownPaths);
 
@@ -91,8 +95,6 @@
 
           if (markdownPaths[0]) await loadMarkdown(markdownPaths[0]);
         });
-
-        loadContributors();
 
         function renderGuidePicker(paths) {
           guideSelect.innerHTML = "";
@@ -133,40 +135,6 @@
           } catch (error) {
             docContent.textContent = `Unable to load this file: ${error.message}`;
           }
-        }
-
-        async function loadContributors() {
-          try {
-            const contributors = await fetchJson(
-              `https://api.github.com/repos/${owner}/${repo}/contributors?per_page=100`
-            );
-            contributorsList.innerHTML = "";
-
-            contributors.forEach((contributor) => {
-              const li = document.createElement("li");
-              li.innerHTML = `
-                <a href="${contributor.html_url}" target="_blank" rel="noreferrer">
-                  <img src="${contributor.avatar_url}" alt="${contributor.login} avatar" loading="lazy" />
-                  <span>@${contributor.login}</span>
-                </a>
-              `;
-              contributorsList.appendChild(li);
-            });
-
-            if (!contributors.length) {
-              contributorsList.innerHTML = "<li>No contributors yet.</li>";
-            }
-          } catch {
-            contributorsList.innerHTML = "<li>Unable to load contributors right now.</li>";
-          }
-        }
-
-        async function fetchJson(url) {
-          const response = await fetch(url);
-          if (!response.ok) {
-            throw new Error(`Request failed: ${response.status}`);
-          }
-          return response.json();
         }
 
         function formatGuideName(path) {
