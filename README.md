@@ -7,7 +7,7 @@ A curated set of practical interview preparation notes for senior leadership rol
 This repository now includes a GitHub Pages-ready site that auto-discovers Markdown guides.
 
 - Default GitHub Pages URL (after enabling Pages):
-  - `https://teamshiksha.github.io/Interview-Prep-Senior-Leadership-Big-Tech/`
+  - `https://teamshiksha.github.io/Senior-Leadership-Big-Tech-Interview-Prep/`
 - Site entrypoint for branch-based Pages deploy:
   - `/docs/index.html`
 
@@ -29,7 +29,7 @@ Each file is focused on one company and is designed for quick scanning before in
    - **Branch**: `main` (or your default branch)
    - **Folder**: `/docs`
 3. Save and wait for deployment.
-4. Open `https://teamshiksha.github.io/Interview-Prep-Senior-Leadership-Big-Tech/`.
+4. Open `https://teamshiksha.github.io/Senior-Leadership-Big-Tech-Interview-Prep/`.
 
 ### Custom Domain Setup (`senior-leadership-interviews.forbunnies.com`)
 
