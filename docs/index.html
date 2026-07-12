@@ -4,11 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Senior Leadership Interview Prep</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=2026-07-13.1" />
     <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
   </head>
   <body>
+    <div class="update-banner" id="update-banner" role="status" hidden>
+      <span>A newer version of this prep library is available.</span>
+      <button type="button" id="refresh-site">Refresh</button>
+    </div>
+
+    <div class="welcome-modal" id="welcome-modal" role="dialog" aria-modal="true" aria-labelledby="welcome-title" hidden>
+      <div class="welcome-modal__backdrop" data-dismiss-welcome></div>
+      <section class="welcome-modal__panel">
+        <p class="eyebrow">A QUICK NOTE BEFORE YOU BEGIN</p>
+        <h2 id="welcome-title">Make this a focused prep session.</h2>
+        <p>This library is designed for deliberate, desktop-first preparation. Set aside time, choose a company guide, and work through it without distractions.</p>
+        <div id="mobile-welcome" hidden>
+          <p class="mobile-note">You are on a phone. Send this to yourself now so you can return on a larger screen when you are ready to prepare.</p>
+          <div class="welcome-modal__actions">
+            <button type="button" class="button button--secondary" id="share-site">Send to yourself</button>
+            <a class="button button--secondary" id="email-site" href="#">Email this link</a>
+          </div>
+        </div>
+        <button type="button" class="button" id="start-preparing">Start preparing</button>
+      </section>
+    </div>
+
     <header class="site-header">
       <div class="header-inner">
         <div class="brand">
@@ -61,6 +83,8 @@
       (async function init() {
         const owner = "TeamShiksha";
         const repo = "Senior-Leadership-Big-Tech-Interview-Prep";
+        // Bump this value and docs/site-version.json whenever cacheable site assets change.
+        const siteVersion = "2026-07-13.1";
 
         const guideSelect = document.getElementById("guide-select");
         const docTitle = document.getElementById("doc-title");
@@ -73,6 +97,9 @@
           "microsoft_interview_prep.md",
           "rippling_interview_prep.md",
         ];
+
+        setupWelcomeModal();
+        checkForUpdate();
 
         renderGuidePicker(markdownPaths);
 
@@ -142,6 +169,59 @@
             .replace(/_interview_prep\.md$/i, "")
             .replace(/_/g, " ")
             .replace(/\b\w/g, (letter) => letter.toUpperCase());
+        }
+
+        function setupWelcomeModal() {
+          const modal = document.getElementById("welcome-modal");
+          const mobileWelcome = document.getElementById("mobile-welcome");
+          const shareButton = document.getElementById("share-site");
+          const emailLink = document.getElementById("email-site");
+          const dismissButton = document.getElementById("start-preparing");
+          const welcomeKey = "senior-leadership-prep-welcome-v1";
+          const isMobile = window.matchMedia("(max-width: 720px), (pointer: coarse)").matches;
+
+          emailLink.href = `mailto:?subject=${encodeURIComponent("Senior Leadership Interview Prep")}&body=${encodeURIComponent(`Save this for a focused desktop prep session: ${window.location.origin}`)}`;
+          mobileWelcome.hidden = !isMobile;
+          shareButton.hidden = !navigator.share;
+
+          const dismiss = () => {
+            modal.hidden = true;
+            try { localStorage.setItem(welcomeKey, "seen"); } catch {}
+          };
+
+          let hasSeenWelcome = false;
+          try { hasSeenWelcome = localStorage.getItem(welcomeKey) === "seen"; } catch {}
+          if (!hasSeenWelcome) {
+            modal.hidden = false;
+            dismissButton.focus();
+          }
+
+          dismissButton.addEventListener("click", dismiss);
+          modal.querySelector("[data-dismiss-welcome]").addEventListener("click", dismiss);
+          shareButton.addEventListener("click", async () => {
+            try {
+              await navigator.share({
+                title: "Senior Leadership Interview Prep",
+                text: "Save this for a focused desktop prep session.",
+                url: window.location.origin,
+              });
+            } catch {}
+          });
+        }
+
+        async function checkForUpdate() {
+          try {
+            const response = await fetch(`./site-version.json?t=${Date.now()}`, { cache: "no-store" });
+            if (!response.ok) return;
+            const latest = await response.json();
+            if (latest.version === siteVersion) return;
+
+            const banner = document.getElementById("update-banner");
+            banner.hidden = false;
+            document.getElementById("refresh-site").addEventListener("click", () => {
+              window.location.replace(`${window.location.pathname}?v=${encodeURIComponent(latest.version)}`);
+            });
+          } catch {}
         }
 
       })();

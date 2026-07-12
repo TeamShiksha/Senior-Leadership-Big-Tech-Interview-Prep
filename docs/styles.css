@@ -20,6 +20,55 @@ body {
   line-height: 1.65;
 }
 
+.update-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .8rem;
+  padding: .55rem 1rem;
+  background: #17245f;
+  color: white;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.update-banner button {
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: .35rem;
+  padding: .25rem .55rem;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.welcome-modal[hidden],
+.update-banner[hidden] { display: none; }
+
+.welcome-modal {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.welcome-modal__backdrop { position: absolute; inset: 0; background: rgba(9, 16, 46, .72); backdrop-filter: blur(5px); }
+.welcome-modal__panel { position: relative; width: min(100%, 535px); padding: 2.2rem; border-radius: 1rem; background: var(--paper); box-shadow: 0 24px 70px rgba(0,0,0,.3); }
+.welcome-modal__panel .eyebrow { color: #5a67a0; }
+.welcome-modal__panel h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.7rem, 5vw, 2.35rem); line-height: 1.15; }
+.welcome-modal__panel p:not(.eyebrow) { color: #45536a; }
+.mobile-note { padding: .8rem; border-radius: .5rem; background: #fff4d7; }
+.welcome-modal__actions { display: flex; flex-wrap: wrap; gap: .65rem; margin: 1rem 0; }
+.button { display: inline-flex; justify-content: center; align-items: center; min-height: 2.7rem; border: 0; border-radius: .5rem; padding: .6rem .9rem; background: var(--brand); color: white; font: inherit; font-size: .9rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.button:hover { color: white; background: #172b77; }
+.button--secondary { border: 1px solid #cbd4e2; background: white; color: var(--brand); }
+.button--secondary:hover { color: #172b77; background: #f3f6fc; }
+
 a { color: var(--brand); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: #101f61; }
 
@@ -99,4 +148,6 @@ a:hover { color: #101f61; }
   .document-heading, #doc-content { padding-left: 1.2rem; padding-right: 1.2rem; }
   #doc-content { font-size: .96rem; }
   .site-footer { display: grid; }
+  .welcome-modal__panel { padding: 1.5rem; }
+  .update-banner { align-items: flex-start; text-align: left; }
 }
