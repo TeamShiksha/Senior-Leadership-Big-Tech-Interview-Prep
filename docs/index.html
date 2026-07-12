@@ -10,38 +10,45 @@
   </head>
   <body>
     <header class="site-header">
-      <div>
-        <h1>Senior Leadership Interview Prep</h1>
-        <p>Browse all interview prep guides in one place.</p>
+      <div class="header-inner">
+        <div class="brand">
+          <p class="eyebrow">LEADERSHIP INTERVIEW LIBRARY</p>
+          <h1>Senior Leadership<br />Interview Prep</h1>
+          <p>Practical preparation guides for high-stakes engineering leadership interviews.</p>
+        </div>
+        <div class="header-actions">
+          <a class="star-link" href="https://github.com/TeamShiksha/Senior-Leadership-Big-Tech-Interview-Prep" target="_blank" rel="noreferrer">★ Star on GitHub <span aria-hidden="true">↗</span></a>
+          <label class="guide-picker" for="guide-select">
+            <span>Choose a guide</span>
+            <select id="guide-select" aria-label="Choose an interview prep guide">
+              <option>Loading guides…</option>
+            </select>
+          </label>
+        </div>
       </div>
     </header>
 
-    <main class="layout">
-      <aside class="sidebar card">
-        <h2>Guides</h2>
-        <p class="hint">Every <code>.md</code> file in this repo is auto-listed here.</p>
-        <ul id="guide-list"></ul>
-      </aside>
-
-      <section class="content card">
-        <h2 id="doc-title">Pick a guide</h2>
+    <main class="content-shell">
+      <section class="content">
+        <div class="document-heading">
+          <p class="eyebrow">INTERVIEW PLAYBOOK</p>
+          <h2 id="doc-title">Loading your guide</h2>
+        </div>
         <article id="doc-content">
-          <p>Select a guide from the left to read it here.</p>
+          <p>Preparing your interview guide…</p>
         </article>
       </section>
     </main>
 
-    <section class="contributors card">
+    <section class="contributors">
       <h2>Contributors</h2>
       <p class="hint">Thanks to everyone contributing to this prep library.</p>
       <ul id="contributors-list"></ul>
     </section>
 
     <footer class="site-footer">
-      <p>
-        Source:
-        <a href="https://github.com/TeamShiksha/Senior-Leadership-Big-Tech-Interview-Prep" target="_blank" rel="noreferrer">TeamShiksha/Senior-Leadership-Big-Tech-Interview-Prep</a>
-      </p>
+      <span>Built for thoughtful engineering leaders.</span>
+      <a href="https://github.com/TeamShiksha/Senior-Leadership-Big-Tech-Interview-Prep" target="_blank" rel="noreferrer">View the source on GitHub ↗</a>
     </footer>
 
     <script>
@@ -49,32 +56,27 @@
         const owner = "TeamShiksha";
         const repo = "Senior-Leadership-Big-Tech-Interview-Prep";
 
-        const guideList = document.getElementById("guide-list");
+        const guideSelect = document.getElementById("guide-select");
         const contributorsList = document.getElementById("contributors-list");
         const docTitle = document.getElementById("doc-title");
         const docContent = document.getElementById("doc-content");
 
         const branch = "prod";
 
-        const tree = await fetchJson(
-          `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
-        );
-
+        const tree = await fetchJson(`https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`);
+        const excludedPaths = new Set(["README.md", "INTERVIEW_PREP_TEMPLATE.md"]);
         const markdownPaths = tree.tree
-          .filter((item) =>
-            item.type === "blob" &&
-            item.path.toLowerCase().endsWith(".md") &&
-            !item.path.startsWith("docs/")
-          )
+          .filter((item) => item.type === "blob" && item.path.toLowerCase().endsWith(".md") && !item.path.startsWith("docs/") && !excludedPaths.has(item.path))
           .map((item) => item.path)
           .sort((a, b) => a.localeCompare(b));
 
-        renderGuideList(markdownPaths);
+        renderGuidePicker(markdownPaths);
 
         const query = new URLSearchParams(window.location.search);
         const initialPath = query.get("file");
-        if (initialPath && markdownPaths.includes(initialPath)) {
-          await loadMarkdown(initialPath);
+        const selectedPath = markdownPaths.includes(initialPath) ? initialPath : markdownPaths[0];
+        if (selectedPath) {
+          await loadMarkdown(selectedPath);
         }
 
         window.addEventListener("popstate", async (event) => {
@@ -87,36 +89,36 @@
             return;
           }
 
-          docTitle.textContent = "Pick a guide";
-          docContent.innerHTML = "<p>Select a guide from the left to read it here.</p>";
+          if (markdownPaths[0]) await loadMarkdown(markdownPaths[0]);
         });
 
         loadContributors();
 
-        function renderGuideList(paths) {
-          guideList.innerHTML = "";
+        function renderGuidePicker(paths) {
+          guideSelect.innerHTML = "";
 
           paths.forEach((path) => {
-            const li = document.createElement("li");
-            const link = document.createElement("a");
-            link.href = `?file=${encodeURIComponent(path)}`;
-            link.textContent = path;
-            link.addEventListener("click", async (event) => {
-              event.preventDefault();
-              history.pushState({ file: path }, "", link.href);
-              await loadMarkdown(path);
-            });
-            li.appendChild(link);
-            guideList.appendChild(li);
+            const option = document.createElement("option");
+            option.value = path;
+            option.textContent = formatGuideName(path);
+            guideSelect.appendChild(option);
           });
 
           if (!paths.length) {
-            guideList.innerHTML = "<li>No markdown guides found yet.</li>";
+            guideSelect.innerHTML = "<option>No interview guides found yet.</option>";
+            guideSelect.disabled = true;
           }
+
+          guideSelect.addEventListener("change", async () => {
+            const path = guideSelect.value;
+            history.pushState({ file: path }, "", `?file=${encodeURIComponent(path)}`);
+            await loadMarkdown(path);
+          });
         }
 
         async function loadMarkdown(path) {
-          docTitle.textContent = path;
+          guideSelect.value = path;
+          docTitle.textContent = formatGuideName(path);
           docContent.innerHTML = "<p>Loading...</p>";
 
           try {
@@ -126,7 +128,7 @@
               throw new Error(`Could not load ${path}`);
             }
             const markdown = await response.text();
-            const html = marked.parse(markdown);
+            const html = marked.parse(markdown, { gfm: true });
             docContent.innerHTML = DOMPurify.sanitize(html);
           } catch (error) {
             docContent.textContent = `Unable to load this file: ${error.message}`;
@@ -165,6 +167,13 @@
             throw new Error(`Request failed: ${response.status}`);
           }
           return response.json();
+        }
+
+        function formatGuideName(path) {
+          return path
+            .replace(/_interview_prep\.md$/i, "")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
         }
 
       })();
