@@ -54,8 +54,7 @@
         const docTitle = document.getElementById("doc-title");
         const docContent = document.getElementById("doc-content");
 
-        const repoMeta = await fetchJson(`https://api.github.com/repos/${owner}/${repo}`);
-        const branch = repoMeta.default_branch;
+        const branch = "prod";
 
         const tree = await fetchJson(
           `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
