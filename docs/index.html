@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Senior Leadership Interview Prep</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div>
+        <h1>Senior Leadership Interview Prep</h1>
+        <p>Browse all interview prep guides in one place.</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar card">
+        <h2>Guides</h2>
+        <p class="hint">Every <code>.md</code> file in this repo is auto-listed here.</p>
+        <ul id="guide-list"></ul>
+      </aside>
+
+      <section class="content card">
+        <h2 id="doc-title">Pick a guide</h2>
+        <article id="doc-content">
+          <p>Select a guide from the left to read it here.</p>
+        </article>
+      </section>
+    </main>
+
+    <section class="contributors card">
+      <h2>Contributors</h2>
+      <p class="hint">Thanks to everyone contributing to this prep library.</p>
+      <ul id="contributors-list"></ul>
+    </section>
+
+    <footer class="site-footer">
+      <p>
+        Source:
+        <a href="https://github.com/TeamShiksha/Interview-Prep-Senior-Leadership-Big-Tech" target="_blank" rel="noreferrer">TeamShiksha/Interview-Prep-Senior-Leadership-Big-Tech</a>
+      </p>
+    </footer>
+
+    <script>
+      (async function init() {
+        const owner = "TeamShiksha";
+        const repo = "Interview-Prep-Senior-Leadership-Big-Tech";
+
+        const guideList = document.getElementById("guide-list");
+        const contributorsList = document.getElementById("contributors-list");
+        const docTitle = document.getElementById("doc-title");
+        const docContent = document.getElementById("doc-content");
+
+        const repoMeta = await fetchJson(`https://api.github.com/repos/${owner}/${repo}`);
+        const branch = repoMeta.default_branch;
+
+        const tree = await fetchJson(
+          `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`
+        );
+
+        const markdownPaths = tree.tree
+          .filter((item) =>
+            item.type === "blob" &&
+            item.path.toLowerCase().endsWith(".md") &&
+            !item.path.startsWith("docs/")
+          )
+          .map((item) => item.path)
+          .sort((a, b) => a.localeCompare(b));
+
+        renderGuideList(markdownPaths);
+
+        const query = new URLSearchParams(window.location.search);
+        const initialPath = query.get("file");
+        if (initialPath && markdownPaths.includes(initialPath)) {
+          await loadMarkdown(initialPath);
+        }
+
+        window.addEventListener("popstate", async (event) => {
+          const statePath = event.state && event.state.file;
+          const queryPath = new URLSearchParams(window.location.search).get("file");
+          const nextPath = statePath || queryPath;
+
+          if (nextPath && markdownPaths.includes(nextPath)) {
+            await loadMarkdown(nextPath);
+            return;
+          }
+
+          docTitle.textContent = "Pick a guide";
+          docContent.innerHTML = "<p>Select a guide from the left to read it here.</p>";
+        });
+
+        loadContributors();
+
+        function renderGuideList(paths) {
+          guideList.innerHTML = "";
+
+          paths.forEach((path) => {
+            const li = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = `?file=${encodeURIComponent(path)}`;
+            link.textContent = path;
+            link.addEventListener("click", async (event) => {
+              event.preventDefault();
+              history.pushState({ file: path }, "", link.href);
+              await loadMarkdown(path);
+            });
+            li.appendChild(link);
+            guideList.appendChild(li);
+          });
+
+          if (!paths.length) {
+            guideList.innerHTML = "<li>No markdown guides found yet.</li>";
+          }
+        }
+
+        async function loadMarkdown(path) {
+          docTitle.textContent = path;
+          docContent.innerHTML = "<p>Loading...</p>";
+
+          try {
+            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+            const response = await fetch(rawUrl);
+            if (!response.ok) {
+              throw new Error(`Could not load ${path}`);
+            }
+            const markdown = await response.text();
+            const html = marked.parse(markdown);
+            docContent.innerHTML = DOMPurify.sanitize(html);
+          } catch (error) {
+            docContent.textContent = `Unable to load this file: ${error.message}`;
+          }
+        }
+
+        async function loadContributors() {
+          try {
+            const contributors = await fetchJson(
+              `https://api.github.com/repos/${owner}/${repo}/contributors?per_page=100`
+            );
+            contributorsList.innerHTML = "";
+
+            contributors.forEach((contributor) => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+                <a href="${contributor.html_url}" target="_blank" rel="noreferrer">
+                  <img src="${contributor.avatar_url}" alt="${contributor.login} avatar" loading="lazy" />
+                  <span>@${contributor.login}</span>
+                </a>
+              `;
+              contributorsList.appendChild(li);
+            });
+
+            if (!contributors.length) {
+              contributorsList.innerHTML = "<li>No contributors yet.</li>";
+            }
+          } catch {
+            contributorsList.innerHTML = "<li>Unable to load contributors right now.</li>";
+          }
+        }
+
+        async function fetchJson(url) {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+          }
+          return response.json();
+        }
+
+      })();
+
+    </script>
+  </body>
+</html>
